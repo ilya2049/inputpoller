@@ -1,7 +1,6 @@
 package poller
 
 import (
-	"io"
 	"time"
 )
 
@@ -9,6 +8,7 @@ type ScanPoller struct {
 	dropInterval time.Duration
 	batchMaxSize int
 	scanningChan <-chan scanResult
+	scanner      inputScanner
 }
 
 func New(
@@ -16,10 +16,14 @@ func New(
 	batchMaxSize int,
 	scanner inputScanner,
 ) *ScanPoller {
+	scanningChan := make(chan scanResult)
+	close(scanningChan)
+
 	return &ScanPoller{
 		dropInterval: dropInterval,
 		batchMaxSize: batchMaxSize,
-		scanningChan: repeatScans(scanner),
+		scanner:      scanner,
+		scanningChan: scanningChan,
 	}
 }
 
@@ -33,7 +37,9 @@ func (b *ScanPoller) Poll() ([]string, error) {
 		select {
 		case aScanResult, ok := <-b.scanningChan:
 			if !ok {
-				return []string{}, io.EOF
+				b.scanningChan = repeatScans(b.scanner)
+
+				continue
 			}
 
 			if aScanResult.err != nil {

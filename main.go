@@ -39,7 +39,7 @@ func scanning(scanPoller *poller.ScanPoller, quitChan chan struct{}) {
 				break
 			}
 
-			fmt.Println("error: ", err.Error())
+			fmt.Println("error:", err.Error())
 
 			continue
 		}

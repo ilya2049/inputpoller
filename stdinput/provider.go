@@ -1,6 +1,7 @@
 package stdinput
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"sync"
@@ -18,18 +19,26 @@ func (p *Provider) StopProviding() {
 	p.stopped = true
 }
 
+var errTest = errors.New("test error")
+
 func (p *Provider) ScanInput() (string, error) {
 	var input string
 
-	if _, err := fmt.Scan(&input); err != nil {
-		return "", err
-	}
+	_, err := fmt.Scan(&input)
 
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	if p.stopped {
 		return "", io.EOF
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	if input == "err" {
+		return "", errTest
 	}
 
 	return input, nil

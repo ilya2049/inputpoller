@@ -1,10 +1,5 @@
 package poller
 
-import (
-	"errors"
-	"io"
-)
-
 type inputScanner interface {
 	ScanInput() (string, error)
 }
@@ -26,7 +21,7 @@ func repeatScans(scanner inputScanner) <-chan scanResult {
 				err:  err,
 			}
 
-			if err != nil && errors.Is(err, io.EOF) {
+			if err != nil {
 				close(c)
 
 				break
